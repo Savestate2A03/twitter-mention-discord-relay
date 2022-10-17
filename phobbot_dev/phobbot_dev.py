@@ -40,7 +40,7 @@ class PhobbotDev(discord.Client):
             self.settings = json.load(info)
 
         # set up commands
-        self.commandhandler = CommandHandler(self.data, self.settings)
+        self.commandhandler = CommandHandler(self.data, self.settings, self)
 
         # set up bot
         super().__init__()

@@ -8,9 +8,10 @@ class Command:
 
 class CommandHandler:
     """Class commands, commands can use server id to sort data"""
-    def __init__(self, data, settings):
+    def __init__(self, data, settings, bot):
         # use the bot's data folder that's passed in.
         # server json files will be stored here!
+        self.bot = bot
         self.data_folder = data
         self.settings = settings
         self._commandlist = [

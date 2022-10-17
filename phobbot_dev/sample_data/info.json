@@ -4,7 +4,7 @@
 	"twitter_api_secret": "xxxxxxxxxxxxxxxxxxx",
 	"twitter_oauth_token": "xxxxxxxxxxxxxxxxxxxxxx",
 	"twitter_oauth_secret": "xxxxxxxxxxxxx",
-	
+    "twitter_user_id": 01234, 
 	"prefix": "!",
 
 }
