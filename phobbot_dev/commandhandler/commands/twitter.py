@@ -104,7 +104,7 @@ class TwitterTimer:
                 # if the tweet exists in our circle buffer, that means
                 # it's a part of an ongoing thread. we don't wanna flood
                 # the channel with thread replies!
-                if tweet['in_reply_to_status_id']:
+                if tweet['in_reply_to_status_id'] and tweet['in_reply_to_user_id'] != self.user_id:
                     if self.circle_buffer.check_if_in_buffer(tweet['in_reply_to_status_id']):
                         continue
                 # the start of a new reply / mention / thread, mark it for future ignore
