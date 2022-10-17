@@ -1,0 +1,10 @@
+{
+	"discord_api_key": "xxxxxxxxxxxxxxxxxxxxxxx",
+	"twitter_api_key": "xxxxxxxxxxxxxxxxx",
+	"twitter_api_secret": "xxxxxxxxxxxxxxxxxxx",
+	"twitter_oauth_token": "xxxxxxxxxxxxxxxxxxxxxx",
+	"twitter_oauth_secret": "xxxxxxxxxxxxx",
+	
+	"prefix": "!",
+
+}

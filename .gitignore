@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 /relay_config.txt
+/phobbot_dev/data/
