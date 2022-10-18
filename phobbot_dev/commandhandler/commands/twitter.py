@@ -6,15 +6,38 @@ import pprint
 
 class CircleBuffer:
     # self-explanatory
-    def __init__(self):
-        self.buffer_size = 1024
-        self.buffer = [None] * self.buffer_size
-        self.index = 0
+    def __init__(self, ch):
+        self.ch = ch
+        # global database
+        server = "info"
+        db = self.ch._server_db(server)
+        relay_info = db["relay_info"]
+
+        if "circle_buffer" not in relay_info:
+            self.buffer = [None] * self.buffer_size
+            self.buffer_size = 512
+            self.index = 0
+            relay_info["circle_buffer"] = {}
+            relay_info["circle_buffer"]["buffer"] = self.buffer
+            relay_info["circle_buffer"]["buffer_size"] = self.buffer_size
+            relay_info["circle_buffer"]["index"] = self.index
+            self.ch._save_server_db(server, db)
+        else:
+            self.buffer = relay_info["circle_buffer"]["buffer"]
+            self.buffer_size = relay_info["circle_buffer"]["buffer_size"]
+            self.index = relay_info["circle_buffer"]["index"]
 
     def add(self, a):
         self.buffer[self.index] = a
         self.index = (self.index + 1) % self.buffer_size
-
+        # global database
+        server = "info"
+        db = self.ch._server_db(server)
+        relay_info = db["relay_info"]
+        relay_info["circle_buffer"]["buffer"] = self.buffer
+        relay_info["circle_buffer"]["index"] = self.index
+        self.ch._save_server_db(server, db)
+        
     def check_if_in_buffer(self, a):
         return (a in self.buffer)
 
@@ -29,7 +52,7 @@ class TwitterTimer:
                           ch.settings["twitter_oauth_token"], ch.settings["twitter_oauth_secret"])
         self.user_id = self.ch._server_db("info")["twitter_user_id"]
         # for storing replied messages to. don't wanna flood the channel with threads
-        self.circle_buffer = CircleBuffer()
+        self.circle_buffer = CircleBuffer(ch)
 
     def create_embed(self, tweet):
         embed=discord.Embed(color=0x8cc8f4, title="🐦 New Twitter mention!", url=f"https://twitter.com/{tweet['user']['screen_name']}/status/{tweet['id']}")
@@ -41,7 +64,7 @@ class TwitterTimer:
         embed.add_field(name=f"{name} | @{tweet['user']['screen_name']}", value=tweet['text'], inline=False)
         embed.set_footer(text="If this is a question, help us out by answering on Twitter!"
                               "\nClick the header to follow the question to Twitter."
-                              "\nReact with ✔️ to mark as resolved."
+                              "\nReact with ✅ to mark as resolved."
                               "\nReact with ❌ to mark as a non-question.")
         return embed
 
@@ -101,14 +124,17 @@ class TwitterTimer:
 
             for tweet in tweets:
                 # pp.pprint(tweet)
+
                 # if the tweet exists in our circle buffer, that means
                 # it's a part of an ongoing thread. we don't wanna flood
                 # the channel with thread replies!
-                if tweet['in_reply_to_status_id'] and tweet['in_reply_to_user_id'] != self.user_id:
-                    if self.circle_buffer.check_if_in_buffer(tweet['in_reply_to_status_id']):
-                        continue
+
                 # the start of a new reply / mention / thread, mark it for future ignore
                 self.circle_buffer.add(tweet['id'])
+
+                if tweet['in_reply_to_status_id']:
+                    if self.circle_buffer.check_if_in_buffer(tweet['in_reply_to_status_id']):
+                        continue
                 # create the embed and send it off to the relay channel
                 embed = self.create_embed(tweet)
                 await self.ch.bot.get_channel(relay_info['relay_channel_id']).send(embed=embed)
