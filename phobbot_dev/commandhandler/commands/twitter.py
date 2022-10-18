@@ -94,7 +94,7 @@ class TwitterTimer:
 
     async def check_mentions(self):
         # pretty console printing needed for debugging
-        pp = pprint.PrettyPrinter(indent=2)
+        # pp = pprint.PrettyPrinter(indent=2)
         while True:
             # loop forever in the event loop
             try:
@@ -136,12 +136,13 @@ class TwitterTimer:
                         continue
 
                 self.circle_buffer.add(tweet['id'])
-
+                
                 # create the embed and send it off to the relay channel
                 embed = self.create_embed(tweet)
-                pp.pprint(relay_info)
-                await self.ch.bot.wait_until_ready()
-                await self.ch.bot.get_channel(relay_info['relay_channel_id']).send(embed=embed)
+                try:
+                    await self.ch.bot.get_channel(relay_info['relay_channel_id']).send(embed=embed)
+                except:
+                    pass
             await asyncio.sleep(self.wait)
 
     def stop(self):
