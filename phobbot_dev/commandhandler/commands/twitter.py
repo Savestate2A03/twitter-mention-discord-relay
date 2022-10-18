@@ -14,8 +14,8 @@ class CircleBuffer:
         relay_info = db["relay_info"]
 
         if "circle_buffer" not in relay_info:
-            self.buffer = [None] * self.buffer_size
             self.buffer_size = 512
+            self.buffer = [None] * self.buffer_size
             self.index = 0
             relay_info["circle_buffer"] = {}
             relay_info["circle_buffer"]["buffer"] = self.buffer
@@ -92,7 +92,6 @@ class TwitterTimer:
 
         return mentions
 
-
     async def check_mentions(self):
         # pretty console printing needed for debugging
         # pp = pprint.PrettyPrinter(indent=2)
@@ -100,7 +99,7 @@ class TwitterTimer:
             # loop forever in the event loop
             try:
                 tweets = self.get_latest_tweets()
-            except twython.exceptions.TwythonRateLimitError as err:
+            except:
                 # silently fail and try again later
                 await asyncio.sleep(self.wait)
                 continue
@@ -130,14 +129,20 @@ class TwitterTimer:
                 # the channel with thread replies!
 
                 # the start of a new reply / mention / thread, mark it for future ignore
-                self.circle_buffer.add(tweet['id'])
 
                 if tweet['in_reply_to_status_id']:
                     if self.circle_buffer.check_if_in_buffer(tweet['in_reply_to_status_id']):
+                        self.circle_buffer.add(tweet['id'])
                         continue
+
+                self.circle_buffer.add(tweet['id'])
+                
                 # create the embed and send it off to the relay channel
                 embed = self.create_embed(tweet)
-                await self.ch.bot.get_channel(relay_info['relay_channel_id']).send(embed=embed)
+                try:
+                    await self.ch.bot.get_channel(relay_info['relay_channel_id']).send(embed=embed)
+                except:
+                    pass
             await asyncio.sleep(self.wait)
 
     def stop(self):
